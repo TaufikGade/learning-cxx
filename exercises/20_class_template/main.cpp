@@ -10,8 +10,13 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for (int i = 0; i < 4; i++) {
+            size *= shape_[i];
+            shape[i] = shape_[i];
+        }
         data = new T[size];
-        std::memcpy(data, data_, size * sizeof(T));
+        if (data_ != nullptr)
+            std::memcpy(data, data_, size * sizeof(T));
     }
     ~Tensor4D() {
         delete[] data;
@@ -26,8 +31,37 @@ struct Tensor4D {
     // `others` 长度为 1 但 `this` 长度不为 1 的维度将发生广播计算。
     // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
+    // TODO: 实现单向广播的加法
     Tensor4D &operator+=(Tensor4D const &others) {
-        // TODO: 实现单向广播的加法
+        // 检查形状是否兼容
+        for (int i = 0; i < 4; ++i) {
+            if (shape[i] != others.shape[i] && others.shape[i] != 1) {
+                throw std::invalid_argument("Incompatible shapes for broadcasting.");
+            }
+        }
+
+        // 逐元素加法
+        for (unsigned int i = 0; i < shape[0]; ++i) {
+            for (unsigned int j = 0; j < shape[1]; ++j) {
+                for (unsigned int k = 0; k < shape[2]; ++k) {
+                    for (unsigned int l = 0; l < shape[3]; ++l) {
+                        unsigned int other_i = (others.shape[0] == 1) ? 0 : i;
+                        unsigned int other_j = (others.shape[1] == 1) ? 0 : j;
+                        unsigned int other_k = (others.shape[2] == 1) ? 0 : k;
+                        unsigned int other_l = (others.shape[3] == 1) ? 0 : l;
+
+                        data[i * shape[1] * shape[2] * shape[3] +
+                             j * shape[2] * shape[3] +
+                             k * shape[3] +
+                             l] += others.data[other_i * others.shape[1] * others.shape[2] * others.shape[3] +
+                                               other_j * others.shape[2] * others.shape[3] +
+                                               other_k * others.shape[3] +
+                                               other_l];
+                    }
+                }
+            }
+        }
+
         return *this;
     }
 };
