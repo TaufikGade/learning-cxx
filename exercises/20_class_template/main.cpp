@@ -1,5 +1,5 @@
 ﻿#include "../exercise.h"
-
+#include <cstring>
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
@@ -16,7 +16,7 @@ struct Tensor4D {
         }
         data = new T[size];
         if (data_ != nullptr)
-            memcpy(data, data_, size * sizeof(T));
+            std::memcpy(data, data_, size * sizeof(T));
     }
     ~Tensor4D() {
         delete[] data;
